@@ -1,7 +1,7 @@
 # Matterport Tag Manager
 
-Matterportスペース上にタグ(Mattertag)を追加・管理するWebアプリケーションです。
-Vanilla TypeScript + Vite + Tailwind CSS をベースに、Matterport Showcase SDKとMatterport GraphQL APIを使用しています。
+Matterport スペース上にタグ(Mattertag)を追加・管理する Web アプリケーションです。
+Vanilla TypeScript + Vite + Tailwind CSS をベースに、Matterport Showcase SDK と Matterport GraphQL API を使用しています。
 
 ---
 
@@ -20,8 +20,8 @@ Vanilla TypeScript + Vite + Tailwind CSS をベースに、Matterport Showcase S
 ### 1. プロジェクトクローン & インストール
 
 ```bash
-git clone https://github.com/your-repo/matterport-tag-manager.git
-cd matterport-tag-manager
+git clone https://github.com/rurururui/matterport-app2.git
+cd matterport-app2
 npm install
 ```
 
@@ -37,7 +37,7 @@ VITE_MATTERPORT_PASSWORD=your-api-password
 ```
 
 > **注意**  
-> `.env` ファイルはGit等に含めないよう注意してください！
+> `.env` ファイルは Git 等に含めないよう注意してください！
 
 ---
 
@@ -53,12 +53,12 @@ npm run dev
 
 ## 🧹 主な機能
 
-| 機能 | 説明 |
-| :--- | :--- |
-| Matterportスペース表示 | SDK経由で任意のスペースを表示 |
-| カーソル停止で座標取得 | ポインタ停止後、500msでボタン表示 |
-| タグ作成 | モーダルでラベルを入力しGraphQL API経由でタグ作成 |
-| 成功トースト通知 | 操作成功時にポップアップ通知 |
+| 機能                    | 説明                                                |
+| :---------------------- | :-------------------------------------------------- |
+| Matterport スペース表示 | SDK 経由で任意のスペースを表示                      |
+| カーソル停止で座標取得  | ポインタ停止後、500ms でボタン表示                  |
+| タグ作成                | モーダルでラベルを入力し GraphQL API 経由でタグ作成 |
+| 成功トースト通知        | 操作成功時にポップアップ通知                        |
 
 ---
 
@@ -79,20 +79,34 @@ vite.config.ts
 
 ## 📄 環境変数一覧
 
-| 変数名 | 説明 |
-| :--- | :--- |
-| VITE_MATTERPORT_SDK_KEY | Matterport SDK Key |
-| VITE_MATTERPORT_MODEL_SID | 表示するMatterportモデルID |
-| VITE_MATTERPORT_USERNAME | Matterport API Basic認証用ユーザー名 |
-| VITE_MATTERPORT_PASSWORD | Matterport API Basic認証用パスワード |
+| 変数名                    | 説明                                  |
+| :------------------------ | :------------------------------------ |
+| VITE_MATTERPORT_SDK_KEY   | Matterport SDK Key                    |
+| VITE_MATTERPORT_MODEL_SID | 表示する Matterport モデル ID         |
+| VITE_MATTERPORT_USERNAME  | Matterport API Basic 認証用ユーザー名 |
+| VITE_MATTERPORT_PASSWORD  | Matterport API Basic 認証用パスワード |
 
 ---
 
 ## 🛡️ 注意事項
 
-- Matterport APIはBasic認証を使用します。クレデンシャル情報の管理には十分注意してください。
-- Matterport Showcase SDKを使用するためには使用許可が必要です。
-- 本番環境ではプロキシーサーバーを通してAPIを利用することを推奨します。
+- Matterport API は Basic 認証を使用します。クレデンシャル情報の管理には十分注意してください。
+- Matterport Showcase SDK を使用するためには使用許可が必要です。
+- 本番環境ではプロキシーサーバーを通して API を利用することを推奨します。
+
+---
+
+## 💻 おすすめの VSCode 拡張機能
+
+開発をより速く、楽に、きれいに進めるために、以下の拡張機能の導入をおすすめします：
+
+| 拡張機能  | 説明                                                               |
+| :-------- | :----------------------------------------------------------------- |
+| ESLint    | コードの文法エラーや警告をリアルタイムで検出してくれるリントツール |
+| Prettier  | コードのフォーマットを自動で整えてくれる整形ツール                 |
+| DotENV    | `.env`ファイルのハイライトと補完サポート                           |
+| GitLens   | Git の履歴や変更内容を可視化してくれる強力な拡張                   |
+| Git Graph | Git の変更履歴管理ツール                                           |
 
 ---
 
