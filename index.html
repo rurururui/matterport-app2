@@ -18,7 +18,7 @@
       <!-- Matterport Viewer -->
       <div
         id="matterport-viewer"
-        class="w-full max-w-5xl h-[600px] bg-gray-100 rounded-lg shadow-lg border-2 border-blue-300"
+        class="w-full h-[700px] bg-gray-100 rounded-lg shadow-lg border-2 border-blue-300"
       ></div>
 
       <!-- タグ追加ボタン -->
@@ -36,7 +36,7 @@
     <!-- モーダル本体（オーバーレイなし） -->
     <div
       id="modal"
-      class="fixed inset-0 flex items-center justify-center hidden z-50"
+      class="fixed inset-0 flex items-center justify-center hidden z-100"
     >
       <div
         class="bg-white p-6 rounded-lg shadow-2xl w-80 text-gray-900 border border-gray-300"
@@ -44,6 +44,7 @@
         <h2 class="text-xl font-bold mb-4 text-center text-blue-700">
           Add New Tag
         </h2>
+        <p>この位置にタグを追加します。よろしいですか？</p>
         <input
           id="tag-label-input"
           type="text"
@@ -70,14 +71,12 @@
     <!-- 座標決定ボタン -->
     <button
       id="fix-position-button"
-      class="fixed hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg z-100"
+      class="fixed hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg z-50"
     >
-      座標を決定する
+      ここにタグを追加する
     </button>
 
     <!-- JavaScriptを読み込む -->
     <script type="module" src="/src/main.ts"></script>
-    <!-- ポップアップ（トースト）表示用 -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
   </body>
 </html>

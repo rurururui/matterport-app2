@@ -9,9 +9,12 @@ const username = import.meta.env.VITE_MATTERPORT_USERNAME;
 const password = import.meta.env.VITE_MATTERPORT_PASSWORD;
 
 let sdk: MpSdk;
-let hoveredPosition: { x: number; y: number; z: number } | null = null;
-let mouseMoveTimer: any = null;
+let intersectionCache: any;
+let poseCache: any;
+let delayBeforeShow = 1000;
+let buttonDisplayed = false;
 
+let iframe: HTMLElement | null;
 const viewer = document.getElementById("matterport-viewer") as HTMLDivElement;
 const fixButton = document.getElementById(
   "fix-position-button"
@@ -32,14 +35,21 @@ async function main() {
     space: spaceId,
     container: viewer,
   });
-  // カーソル位置を取得するイベントを設定
-  setupPointerListener(sdk);
+  // SDK初期化時に挿入されたiframeを取得
+  iframe = document.getElementById("mp-showcase");
   // タグ一覧取得
   sdk.Mattertag.getData().then((tags) => {
     renderTags(tags);
   });
   // 「タグ追加」ボタンクリックでモーダル開く
   addTagButton.addEventListener("click", () => {
+    alert("タグを追加する位置にカーソルを移動してください。");
+    // カーソル位置を取得するイベントを設定
+    setupPointerListener(sdk);
+  });
+  fixButton.addEventListener("click", () => {
+    fixButton.style.display = "none";
+    // モーダルを表示
     tagLabelInput.value = "";
     modal.classList.remove("hidden");
     modal.classList.add("flex");
@@ -142,28 +152,37 @@ function renderTags(tags: any[]) {
 }
 
 async function setupPointerListener(sdk: MpSdk) {
-  sdk.Pointer.intersection.subscribe((intersectionData: any) => {
-    hoveredPosition = intersectionData?.position ?? null;
-    // マウス動いたらタイマーリセット
-    if (mouseMoveTimer) {
-      clearTimeout(mouseMoveTimer);
-    }
-    // 500ms止まったらボタン表示
-    mouseMoveTimer = setTimeout(() => {
-      if (hoveredPosition) {
-        showFixButton(intersectionData.position);
-      }
-    }, 500);
+  sdk.Camera.pose.subscribe((pose) => {
+    poseCache = pose;
   });
-}
-
-// ボタンを画面上に表示
-function showFixButton(screenPos: { x: number; y: number }) {
-  if (!fixButton) return;
-  const buttonWidth = 120; // ボタンの幅をだいたい予測（px）
-  const buttonHeight = 40; // ボタンの高さも予測（px）
-  // クリックしたカーソル位置からボタンの中心がカーソルに合うように調整
-  fixButton.style.left = `${screenPos.x - buttonWidth / 2}px`;
-  fixButton.style.top = `${screenPos.y - buttonHeight - 10}px`; // 10pxだけカーソル上に浮かせる
-  fixButton.classList.remove("hidden");
+  sdk.Pointer.intersection.subscribe((intersection) => {
+    console.log(intersection);
+    intersectionCache = intersection;
+    intersectionCache.time = new Date().getTime();
+    buttonDisplayed = false;
+  });
+  setInterval(() => {
+    if (!intersectionCache || !poseCache) return;
+    const nextShow = intersectionCache.time + delayBeforeShow;
+    if (new Date().getTime() > nextShow) {
+      if (buttonDisplayed) return;
+      if (iframe === null) return;
+      // iframeのサイズを取得
+      let size = {
+        w: iframe.clientWidth,
+        h: iframe.clientHeight,
+      };
+      // iframeのサイズとカーソル位置をもとに、iframe内の座標を取得
+      let coord = sdk.Conversion.worldToScreen(
+        intersectionCache.position,
+        poseCache,
+        size
+      );
+      // iframeのサイズに合わせてボタン位置を微調整する
+      fixButton.style.left = `${coord.x - 50}px`;
+      fixButton.style.top = `${coord.y + 75}px`;
+      fixButton.style.display = "block";
+      buttonDisplayed = true;
+    }
+  }, 5);
 }
