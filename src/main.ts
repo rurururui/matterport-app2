@@ -77,8 +77,10 @@ async function main() {
           basicAuthToken,
           modelSid,
           "tsmq1wak12rhgn0mawksxcwcd", // 位置指定は仮のSID
-          label
-          // ※座標を使いたい場合は、ここにx/y/zを渡す
+          label,
+          intersectionCache.position.x,
+          -intersectionCache.position.z,
+          intersectionCache.position.y
         );
         alert("タグが正常に作成されました。");
       } catch (error) {

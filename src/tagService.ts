@@ -21,10 +21,10 @@ export async function addTagViaGraphQL(
   basicAuthToken: string,
   modelId: string,
   floorId: string,
-  label: string
-  // anchorPositionX: number,
-  // anchorPositionY: number,
-  // anchorPositionZ: number
+  label: string,
+  anchorPositionX: number,
+  anchorPositionY: number,
+  anchorPositionZ: number
 ) {
   // GraphQL ミューテーション文字列
   const query = `
@@ -90,9 +90,9 @@ export async function addTagViaGraphQL(
     icon: "info",
     keywords: ["test"],
     enabled: true,
-    anchorPositionX: 1,
-    anchorPositionY: 1,
-    anchorPositionZ: 1,
+    anchorPositionX: anchorPositionX,
+    anchorPositionY: anchorPositionY,
+    anchorPositionZ: anchorPositionZ,
     stemEnabled: true,
     stemNormalX: 0,
     stemNormalY: 0,
