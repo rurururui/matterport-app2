@@ -1,19 +1,21 @@
 import { setupSdk, MpSdk } from "@matterport/sdk";
 import { addTagViaGraphQL, createBasicAuthToken } from "./tagService";
 
-// 環境変数を設定
+// 環境変数から設定値を取得
 const sdkKey = import.meta.env.VITE_MATTERPORT_SDK_KEY;
 const spaceId = import.meta.env.VITE_MATTERPORT_MODEL_SID;
 const modelSid = import.meta.env.VITE_MATTERPORT_MODEL_SID;
 const username = import.meta.env.VITE_MATTERPORT_USERNAME;
 const password = import.meta.env.VITE_MATTERPORT_PASSWORD;
 
+// SDK関連のキャッシュや制御変数
 let sdk: MpSdk;
-let intersectionCache: any;
-let poseCache: any;
-let delayBeforeShow = 1000;
-let buttonDisplayed = false;
+let intersectionCache: any; // 最後に検出された交差情報
+let poseCache: any; // カメラの姿勢情報
+let delayBeforeShow = 1000; // ボタン表示までの遅延（ミリ秒）
+let buttonDisplayed = false; // 座標決定ボタンの表示状態
 
+// DOM要素の参照を取得
 let iframe: HTMLElement | null;
 const viewer = document.getElementById("matterport-viewer") as HTMLDivElement;
 const fixButton = document.getElementById(
@@ -27,39 +29,45 @@ const tagLabelInput = document.getElementById(
   "tag-label-input"
 ) as HTMLInputElement;
 
+// アプリケーションのメイン処理を開始
 main();
 
 async function main() {
-  // SDKを初期化
+  // Matterport SDKの初期化
   sdk = await setupSdk(sdkKey, {
     space: spaceId,
     container: viewer,
   });
-  // SDK初期化時に挿入されたiframeを取得
+
+  // 自動的に挿入されるiframe要素を取得
   iframe = document.getElementById("mp-showcase");
-  // タグ一覧取得
+
+  // 既存のMattertag（タグ）一覧を取得して表示
   sdk.Mattertag.getData().then((tags) => {
     renderTags(tags);
   });
-  // 「タグ追加」ボタンクリックでモーダル開く
+
+  // 「タグ追加」ボタンのクリックで、ポインタリスナーを有効化
   addTagButton.addEventListener("click", () => {
     alert("タグを追加する位置にカーソルを移動してください。");
-    // カーソル位置を取得するイベントを設定
     setupPointerListener(sdk);
   });
+
+  // 「座標決定」ボタンでモーダルを表示
   fixButton.addEventListener("click", () => {
     fixButton.style.display = "none";
-    // モーダルを表示
     tagLabelInput.value = "";
     modal.classList.remove("hidden");
     modal.classList.add("flex");
   });
-  // 「キャンセル」でモーダル閉じる
+
+  // モーダルの「キャンセル」ボタンで閉じる
   cancelModalButton.addEventListener("click", () => {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
   });
-  // 「保存」でタグ作成
+
+  // モーダルの「保存」ボタンでタグ作成処理を実行
   saveModalButton.addEventListener("click", async () => {
     const label = tagLabelInput.value.trim();
     if (label) {
@@ -68,16 +76,14 @@ async function main() {
         await addTagViaGraphQL(
           basicAuthToken,
           modelSid,
-          "tsmq1wak12rhgn0mawksxcwcd",
+          "tsmq1wak12rhgn0mawksxcwcd", // 位置指定は仮のSID
           label
-          // lastClickedPosition.x,
-          // lastClickedPosition.y,
-          // lastClickedPosition.z
+          // ※座標を使いたい場合は、ここにx/y/zを渡す
         );
-        alert("Tag created successfully!");
+        alert("タグが正常に作成されました。");
       } catch (error) {
         console.error(error);
-        alert("Failed to create tag.");
+        alert("タグの作成に失敗しました。");
       }
     }
     modal.classList.add("hidden");
@@ -85,7 +91,7 @@ async function main() {
   });
 }
 
-// タグ一覧テーブルを作成
+// タグ一覧をHTMLテーブルとして描画
 function renderTags(tags: any[]) {
   const list = document.getElementById("tag-list");
   if (list) {
@@ -121,14 +127,18 @@ function renderTags(tags: any[]) {
       </div>
     `;
 
-    // イベント登録
+    // 編集ボタンのクリックイベント
     document.querySelectorAll(".edit-button").forEach((button) => {
       button.addEventListener("click", async (e) => {
         const target = e.currentTarget as HTMLButtonElement;
         const sid = target.dataset.id!;
         const currentLabel = target.dataset.label!;
-        const newLabel = prompt("Enter new label:", currentLabel);
+        const newLabel = prompt(
+          "新しいラベルを入力してください：",
+          currentLabel
+        );
         if (newLabel) {
+          // ここで編集APIを呼び出すことも可能（コメントアウト中）
           // await sdk.Mattertag.edit({ sid, label: newLabel });
           const updatedTags = await sdk.Mattertag.getData();
           renderTags(updatedTags);
@@ -136,11 +146,12 @@ function renderTags(tags: any[]) {
       });
     });
 
+    // 削除ボタンのクリックイベント
     document.querySelectorAll(".delete-button").forEach((button) => {
       button.addEventListener("click", async (e) => {
         const target = e.currentTarget as HTMLButtonElement;
         const sid = target.dataset.id!;
-        const confirmed = confirm("Are you sure you want to delete this tag?");
+        const confirmed = confirm("このタグを削除してもよいですか？");
         if (confirmed) {
           await sdk.Mattertag.remove([sid]);
           const updatedTags = await sdk.Mattertag.getData();
@@ -151,34 +162,43 @@ function renderTags(tags: any[]) {
   }
 }
 
+// ポインタとカメラの情報をもとに「座標決定ボタン」の表示制御
 async function setupPointerListener(sdk: MpSdk) {
+  // カメラの姿勢情報を取得
   sdk.Camera.pose.subscribe((pose) => {
     poseCache = pose;
   });
+
+  // ポインタが指している3D空間上の交差点を取得
   sdk.Pointer.intersection.subscribe((intersection) => {
     console.log(intersection);
     intersectionCache = intersection;
     intersectionCache.time = new Date().getTime();
     buttonDisplayed = false;
   });
+
+  // 定期的に交差点を監視し、一定時間静止していたら「座標決定」ボタンを表示
   setInterval(() => {
     if (!intersectionCache || !poseCache) return;
     const nextShow = intersectionCache.time + delayBeforeShow;
     if (new Date().getTime() > nextShow) {
       if (buttonDisplayed) return;
       if (iframe === null) return;
-      // iframeのサイズを取得
+
+      // iframeの大きさを取得
       let size = {
         w: iframe.clientWidth,
         h: iframe.clientHeight,
       };
-      // iframeのサイズとカーソル位置をもとに、iframe内の座標を取得
+
+      // 交差点の3D座標を画面座標に変換
       let coord = sdk.Conversion.worldToScreen(
         intersectionCache.position,
         poseCache,
         size
       );
-      // iframeのサイズに合わせてボタン位置を微調整する
+
+      // ボタンの表示位置を計算して表示
       fixButton.style.left = `${coord.x - 50}px`;
       fixButton.style.top = `${coord.y + 75}px`;
       fixButton.style.display = "block";
