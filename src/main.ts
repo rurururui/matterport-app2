@@ -10,6 +10,7 @@ const password = import.meta.env.VITE_MATTERPORT_PASSWORD;
 
 // SDK関連のキャッシュや制御変数
 let sdk: MpSdk;
+let currentFloor: string;
 let intersectionCache: any; // 最後に検出された交差情報
 let poseCache: any; // カメラの姿勢情報
 let delayBeforeShow = 1000; // ボタン表示までの遅延（ミリ秒）
@@ -41,6 +42,14 @@ async function main() {
 
   // 自動的に挿入されるiframe要素を取得
   iframe = document.getElementById("mp-showcase");
+
+  // 現在のフロア情報を取得
+  sdk.Floor.current.subscribe((floor) => {
+    if (floor.id) {
+      currentFloor = floor.id;
+      console.log(floor.id);
+    }
+  });
 
   // 既存のMattertag（タグ）一覧を取得して表示
   sdk.Mattertag.getData().then((tags) => {
@@ -76,7 +85,7 @@ async function main() {
         await addTagViaGraphQL(
           basicAuthToken,
           modelSid,
-          "tsmq1wak12rhgn0mawksxcwcd", // 位置指定は仮のSID
+          currentFloor,
           label,
           intersectionCache.position.x,
           -intersectionCache.position.z,
